@@ -4,9 +4,7 @@ from flask import Flask, request, jsonify
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from database import database_url
-import requests
 
-from enums.type_of_struction import TypeOfStruct
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
@@ -14,9 +12,10 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
 from models.classifier import Classifier
-from models.armed_force import ArmedForce
 from models.event import Event
-
+from enums.type_operation import TypeOperation
+from models.event_handler import EventHandler
+from models.events_saga import EventSaga
 
 @app.route('/', methods=['POST'])
 def hello_world():
@@ -47,7 +46,14 @@ def create_event():
     db.session.commit()
     return jsonify({'message': 'registered', 'code': 201})
 
-# def handler_service_struct(classifier):
+def handler_service_struct(classifier, type, event_id):
+    if type == TypeOperation.ADD:
+        if classifier.check_attributes():
+            eventHandler = EventHandler(event_id, None)
+            db.session.add(eventHandler)
+            db.session.commit()
+            db.session.add(classifier)
+            db.session.commit()
 
 
 if __name__ == '__main__':

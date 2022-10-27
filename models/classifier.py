@@ -26,3 +26,6 @@ class Classifier(db.Model):
         self.parent_id = parent_id
         self.status = status
         self.description = description
+
+    def check_attributes(self):
+        return True
