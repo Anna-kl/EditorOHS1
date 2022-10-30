@@ -5,8 +5,8 @@ import uuid
 from sqlalchemy.orm import relationship
 
 from app import db
-from enums.type_of_struction import TypeOfStruct
-from enums.type_operation import TypeOperation
+from enums.type_of_struction import TypeOfObject
+from enums.type_of_operation import TypeOfOperation
 
 
 class Event(db.Model):
@@ -16,14 +16,18 @@ class Event(db.Model):
     name = Column(String, nullable=False)
     description = Column(String, nullable=True)
     parent_id = Column(UUID(as_uuid=True), default=uuid.uuid4, nullable=True)
-    type = Column(Enum(TypeOperation), nullable=True)
-    rule = Column(String, nullable=False)
-    attributes = Column(String, nullable=True)
+    type = Column(Enum(TypeOfOperation), nullable=True)
+    object = Column(Enum(TypeOfObject),  nullable=False)
 
-    def __init__(self, name, description, parent_id, type, rule, attributes):
+    def __init__(self, name, description, parent_id, type, rule, attributes, object):
         self.name = name
         self.rule = rule
         self.attributes = attributes
         self.type = type
         self.parent_id = parent_id
         self.description = description
+
+    @classmethod
+    def get_event(cls, type_of_operation, type_of_object):
+        return db.session.query(Event).filter(Event.type == type_of_operation).filter(
+            Event.object == type_of_object).first()

@@ -8,6 +8,15 @@ from app import db
 from enums.status import Status
 
 
+def get_root(object):
+    if object.parent_id is not None:
+        object = db.session.query(ArmedForce).filter(id == object.parent_id).first()
+        if object:
+            get_root(object)
+    else:
+        return object
+
+
 class ArmedForce(db.Model):
     __tablename__ = "armed_force"
 
@@ -15,7 +24,22 @@ class ArmedForce(db.Model):
     name = Column(String)
     parent_id = Column(UUID(as_uuid=True), default=uuid.uuid4)
     view_vf_id = Column(UUID(as_uuid=True), ForeignKey("classifiers.id"))
-    genus_vf_id = Column(UUID(as_uuid=True), ForeignKey("classifiers.id"))
-    purpose_id = Column(UUID(as_uuid=True), ForeignKey("classifiers.id"))
-    struction_vf_id = Column(UUID(as_uuid=True), ForeignKey("classifiers.id"))
     status = Column(Enum(Status), nullable=False)
+
+    def __init__(self, name, parent_id, view_vf_id, genus_vf_id, purpose_id, struction_vf_id, status):
+        self.name = name
+        self.status = status
+        self.parent_id = parent_id
+        self.purpose_id = purpose_id
+        self.genus_vf_id = genus_vf_id
+        self.view_vf_id = view_vf_id
+        self.struction_vf_id = struction_vf_id
+
+    def get_root(self):
+        if self.parent_id is not None:
+            object = db.session.query(Classifier).filter(Classifier.id == uuid.UUID(self.parent_id)).first()
+            if object:
+                return self.get_root(object)
+        else:
+            return self
+
