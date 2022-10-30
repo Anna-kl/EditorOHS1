@@ -14,10 +14,10 @@ class EventHandler(db.Model):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     event_id = Column(UUID(as_uuid=True), ForeignKey("events.id"))
-    event = relationship('Event', back_populates='eventHandler')
+    # id корня объекта
     object_id = Column(UUID(as_uuid=True), nullable=True)
     dttm_create = Column(DateTime(True), server_default=text("now()"))
-    dttm_close = Column(DateTime(True), nullable=False)
+    dttm_close = Column(DateTime(True), nullable=True)
     status = Column(Enum(STATUS_OPERATION), nullable=False)
 
     def __init__(self, event_id, object_id):
@@ -25,3 +25,12 @@ class EventHandler(db.Model):
         self.event_id = event_id
         self.dttm_create = datetime.now()
         self.object_id = object_id
+
+    def save(self):
+        db.session.add(self)
+        db.session.commit()
+        return self
+
+    def close(self):
+        self.dttm_close = datetime.now()
+        db.session.commit()
